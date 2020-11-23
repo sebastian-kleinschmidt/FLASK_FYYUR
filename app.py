@@ -14,6 +14,7 @@ from flask_wtf import Form
 from forms import *
 
 from config import SQLALCHEMY_DATABASE_URI
+from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -25,6 +26,7 @@ db = SQLAlchemy(app)
 
 # Connect to a local postgresql database
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+migrate = Migrate(app, db)
 
 #----------------------------------------------------------------------------#
 # Models.
@@ -40,6 +42,7 @@ class Venue(db.Model):
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
+    genres = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
 
@@ -226,22 +229,22 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-  data = request.form
-  print(data)
-
-#  try:
-#    venue = Venue(name = data['name'], city = data['city'], state = data['state'], 
-#    address = data['address'], phone = data['phone'], image_link = db.Column(db.String(500)),
-#    facebook_link = data['facebook_link'])
-#    db.session.add(venue)
-#    db.session.commit()
-#  except:
-#    db.session.rollback()
-#    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+  
+  try:
+    venue = Venue(name = request.form['name'], city = request.form['city'], state = request.form['state'], genres = request.form.getlist('genres'), address = request.form['address'], phone = request.form['phone'], facebook_link = request.form['facebook_link'])
+    db.session.add(venue)
+    db.session.commit()
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
+    return render_template('pages/home.html')
+  except:
+    db.session.rollback()
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+    return render_template('pages/home.html')
+    
 #  finally:
 #    flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
+  #flash('Venue ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
