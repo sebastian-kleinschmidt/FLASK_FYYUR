@@ -46,8 +46,8 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
-    #past shows
-    #upcoming shows
+    #Todo: past shows
+    #Todo upcoming shows
     past_shows_count = db.Column(db.Integer, default=0)
     upcoming_shows_count = db.Column(db.Integer, default=0)
 
@@ -440,14 +440,21 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
-
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  return render_template('pages/home.html')
+  artist = Artist(name=request.form['name'],
+                  city=request.form['city'],
+                  state=request.form['state'],
+                  phone=request.form['phone'],
+                  genres=request.form.getlist('genres'),
+                  facebook_link=request.form['facebook_link'])
+  try:
+    db.session.add(artist)
+    db.session.commit()
+    flash('Artist ' + request.form['name'] + ' was successfully listed!')
+  except:
+    db.session.rollback()
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
+  finally:
+    return render_template('pages/home.html')
 
 
 #  Shows
