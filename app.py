@@ -46,8 +46,8 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
-    #Todo: past shows
-    #Todo upcoming shows
+    # TODO: past shows
+    # TODO: upcoming shows
     past_shows_count = db.Column(db.Integer, default=0)
     upcoming_shows_count = db.Column(db.Integer, default=0)
 
@@ -64,7 +64,13 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    seeking_venue = db.Column(db.Boolean, default=False)
+    seeking_description = db.Column(db.String(500))
 
+    #"past_shows"
+    #"upcoming_shows": [],
+    past_shows_count = db.Column(db.Integer, default=0)
+    upcoming_shows_count = db.Column(db.Integer, default=0)
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -269,6 +275,8 @@ def delete_venue(venue_id):
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
+  data = Artist.query.all()
+  '''
   # TODO: replace with real data returned from querying the database
   data=[{
     "id": 4,
@@ -280,26 +288,30 @@ def artists():
     "id": 6,
     "name": "The Wild Sax Band",
   }]
+  '''
   return render_template('pages/artists.html', artists=data)
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
+  data = Artist.query.filter(Artist.name.contains(request.form.get('search_term', ''))).all()
+
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
+  
   response={
-    "count": 1,
-    "data": [{
-      "id": 4,
-      "name": "Guns N Petals",
-      "num_upcoming_shows": 0,
-    }]
+    "count": len(data),
+    "data": data
   }
+  
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
+  data = Artist.query.filter_by(id=artist_id).first()
+  data.genres = data.genres.strip('}{').split(',')
+  '''
   # TODO: replace with real venue data from the venues table, using venue_id
   data1={
     "id": 4,
@@ -373,6 +385,7 @@ def show_artist(artist_id):
     "upcoming_shows_count": 3,
   }
   data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
+  '''
   return render_template('pages/show_artist.html', artist=data)
 
 #  Update
