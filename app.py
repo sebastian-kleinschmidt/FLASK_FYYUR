@@ -55,6 +55,10 @@ class Venue(db.Model):
     show_id = db.relationship('Show', backref='venue', lazy=True)
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
+    def __repr__(self):
+        return 'Venue: {}'.format(self.name)
+
+
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
@@ -76,6 +80,9 @@ class Artist(db.Model):
     show_id = db.relationship('Show', backref='artist', lazy=True)
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
+    def __repr__(self):
+      return 'Artist {}'.format(self.name)
+
 class Show(db.Model):
   __tablename__ = 'Show'
 
@@ -95,7 +102,13 @@ db.create_all()
 #----------------------------------------------------------------------------#
 
 def format_datetime(value, format='medium'):
-  date = dateutil.parser.parse(value)
+  #date = dateutil.parser.parse(value)
+
+  if isinstance(value, str):
+    date = dateutil.parser.parse(value)
+  else:
+    date = value
+      
   if format == 'full':
       format="EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
@@ -120,8 +133,34 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  #data = Venue.query.all()
+  cities = []
+  states = []
+  venues = Venue.query.order_by(Venue.city).all()
+  for venue in venues:
+    if venue.city not in cities:
+      cities.append(venue.city)
+      states.append(venue.state)
+    else:
+      indices = [i for i, x in enumerate(cities) if x == venue.city]
+      for index in indices:
+        if venue.state == states[index]:
+          break
+        cities.append(venue.city)
+        states.append(venue.state)
   
+  data = []
+  for i, city in enumerate(cities):
+    venues = venue.query.filter(Venue.city==city, Venue.state==states[i]).all()
+    temp = {
+      "city": city,
+      "state": states[i],
+      "venues": []
+    }
+    for venue in venues:
+      temp['venues'].append(venue)
+    data.append(temp)
+
+  '''
   data=[{
     "city": "San Francisco",
     "state": "CA",
@@ -143,7 +182,7 @@ def venues():
       "num_upcoming_shows": 0,
     }]
   }]
-  
+  '''
   return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
@@ -161,7 +200,9 @@ def show_venue(venue_id):
   # shows the venue page with the given venue_id
   data = Venue.query.filter_by(id=venue_id).first()
   data.genres = data.genres.strip('}{').split(',')
-
+  data.upcoming_shows = Show.query.filter_by(venue_id=data.id).all()
+  data.past_shows_count = Show.query.filter(Show.venue_id==data.id, Show.start_time<datetime.datetime.now()).count() #getnum, filter by date
+  data.upcoming_shows_count = Show.query.filter(Show.venue_id==data.id, Show.start_time>datetime.datetime.now()).count() #getnum, filter by date
   '''
   data1={
     "id": 1,
