@@ -293,13 +293,13 @@ def edit_artist_submission(artist_id):
 def edit_venue(venue_id):
   venue = Venue.query.filter_by(id=venue_id).first()
   form = VenueForm()
-  form.name = venue.name
-  form.genres = venue.genres
-  form.address = venue.address
-  form.city = venue.city
-  form.state = venue.state
-  form.phone = venue.phone
-  form.facebook_link = venue.facebook_link
+  form.name.data = venue.name
+  form.genres.data = venue.genres
+  form.address.data = venue.address
+  form.city.data = venue.city
+  form.state.data = venue.state
+  form.phone.data = venue.phone
+  form.facebook_link.data = venue.facebook_link
 
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
